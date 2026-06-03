@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Study Assistant</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+        }
+
+        #quizResult {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            white-space: pre-wrap;
+        }
+
+        #answerResult {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            white-space: pre-wrap;
+        }
+
+        /* Added PDF Result Styling */
+        #pdfResult {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>AI Study Assistant</h1>
+
+    <input type="file" id="pdfFile">
+    <br><br>
+    <button onclick="uploadPDF()">Upload PDF</button>
+    <br><br>
+
+    <textarea id="notes" placeholder="Paste your notes here"></textarea>
+    
+    <br>
+
+    <button onclick="generateSummary()">Generate Summary</button>
+    <button onclick="generateQuiz()">Generate Quiz</button>
+    <button onclick="askAI()">Ask AI</button>
+
+    <h2>PDF Content</h2>
+    <div id="pdfResult">
+        PDF content will appear here...
+    </div>
+
+    <div id="result">
+        Summary will appear here...
+    </div>
+
+    <h2>Quiz</h2>
+    <div id="quizResult">
+        Quiz will appear here...
+    </div>
+
+    <h2>AI Answer</h2>
+    <div id="answerResult">
+        AI answer will appear here...
+    </div>
+
+    <script>
+        // Added uploadPDF Function
+        async function uploadPDF() {
+            let file = document.getElementById("pdfFile").files[0];
+            
+            if (!file) {
+                alert("Please select a file first!");
+                return;
+            }
+
+            let formData = new FormData();
+            formData.append("file", file);
+
+            document.getElementById("pdfResult").innerText = "Reading PDF...";
+
+            try {
+                let response = await fetch("http://127.0.0.1:8000/upload-pdf", {
+                    method: "POST",
+                    body: formData
+                });
+
+                let data = await response.json();
+                document.getElementById("pdfResult").innerText = data.content;
+            } catch (error) {
+                document.getElementById("pdfResult").innerText = "Error uploading or parsing PDF.";
+                console.error(error);
+            }
+        }
+
+        async function generateSummary() {
+            let notes = document.getElementById("notes").value;
+            document.getElementById("result").innerText = "Generating Summary...";
+            
+            try {
+                let response = await fetch("http://127.0.0.1:8000/summary", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        text: notes
+                    })
+                });
+                
+                let data = await response.json();
+                document.getElementById("result").innerText = data.summary;
+            } catch (error) {
+                document.getElementById("result").innerText = "Error generating summary.";
+                console.error(error);
+            }
+        }
+
+        async function generateQuiz() {
+            let notes = document.getElementById("notes").value;
+            document.getElementById("quizResult").innerText = "Generating Quiz...";
+            
+            try {
+                let response = await fetch("http://127.0.0.1:8000/quiz", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        text: notes
+                    })
+                });
+                
+                let data = await response.json();
+                document.getElementById("quizResult").innerText = data.quiz;
+            } catch (error) {
+                document.getElementById("quizResult").innerText = "Error generating quiz.";
+                console.error(error);
+            }
+        }
+
+        async function askAI() {
+            let notes = document.getElementById("notes").value;
+            document.getElementById("answerResult").innerText = "Thinking...";
+            
+            try {
+                let response = await fetch("http://127.0.0.1:8000/ask", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        text: notes
+                    })
+                });
+                
+                let data = await response.json();
+                document.getElementById("answerResult").innerText = data.answer;
+            } catch (error) {
+                document.getElementById("answerResult").innerText = "Error getting AI answer.";
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
